@@ -1,0 +1,6 @@
+replicaCount: 5
+
+message: "prod environment"
+
+service:
+  nodePort: 30082

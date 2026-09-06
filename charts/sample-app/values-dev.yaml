@@ -1,0 +1,6 @@
+replicaCount: 1
+
+message: "dev environment"
+
+service:
+  nodePort: 30081
