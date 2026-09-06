@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Shun-Yamana/gitops-lab.git
+    targetRevision: master
+    path: charts/sample-app
+    helm:
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sample-app
+
+  syncPolicy: {}
