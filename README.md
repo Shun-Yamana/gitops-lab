@@ -5,7 +5,7 @@ k8s / Helm / ArgoCD を手を動かしながら学ぶための学習リポジト
 ## ロードマップ
 
 - [x] Step 1: リポジトリ初期化 & kindクラスタ構築
-- [ ] Step 2: 素のマニフェストでサンプルアプリをデプロイ(kubectl操作の復習)
+- [x] Step 2: 素のマニフェストでサンプルアプリをデプロイ(kubectl操作の復習)
 - [ ] Step 3: Helmチャート化
 - [ ] Step 4: ArgoCDインストール
 - [ ] Step 5: GitOps化(ArgoCD ApplicationがこのリポジトリのHelmチャートを自動同期)
