@@ -1,23 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-app
-  namespace: sample-app
+  name: {{ include "sample-app.fullname" . }}
   labels:
-    app: sample-app
+    {{- include "sample-app.labels" . | nindent 4 }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: sample-app
+      app: {{ include "sample-app.fullname" . }}
   template:
     metadata:
       labels:
-        app: sample-app
+        app: {{ include "sample-app.fullname" . }}
     spec:
       containers:
         - name: nginx
-          image: sample-app:with-nano
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 80
           volumeMounts:
@@ -26,4 +25,4 @@ spec:
       volumes:
         - name: html
           configMap:
-            name: sample-app-html
+            name: {{ include "sample-app.fullname" . }}-html

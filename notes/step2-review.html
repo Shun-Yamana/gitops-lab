@@ -1,0 +1,867 @@
+<title>sample-app 解剖図</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #eef1f6;
+    --surface: #ffffff;
+    --surface-2: #e4e9f1;
+    --ink: #14202e;
+    --muted: #55647c;
+    --line: #c9d2de;
+    --accent: #cf7d2c;      /* amber — workload chain: Deployment / ReplicaSet / Pod */
+    --accent-2: #2f8f86;    /* teal — networking: Service */
+    --accent-3: #5b62c9;    /* indigo — config: ConfigMap */
+    --code-bg: #182231;
+    --code-ink: #dbe4f0;
+    --code-muted: #7f90a8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0d141f;
+      --surface: #131c29;
+      --surface-2: #1a2433;
+      --ink: #e6ecf4;
+      --muted: #8ea0b8;
+      --line: #263349;
+      --accent: #e2954f;
+      --accent-2: #4bb0a6;
+      --accent-3: #8b90e8;
+      --code-bg: #0b121c;
+      --code-ink: #dbe4f0;
+      --code-muted: #6d7f99;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0d141f;
+    --surface: #131c29;
+    --surface-2: #1a2433;
+    --ink: #e6ecf4;
+    --muted: #8ea0b8;
+    --line: #263349;
+    --accent: #e2954f;
+    --accent-2: #4bb0a6;
+    --accent-3: #8b90e8;
+    --code-bg: #0b121c;
+    --code-ink: #dbe4f0;
+    --code-muted: #6d7f99;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      linear-gradient(var(--paper), var(--paper)),
+      repeating-linear-gradient(0deg, transparent, transparent 27px, color-mix(in srgb, var(--line) 55%, transparent) 28px),
+      repeating-linear-gradient(90deg, transparent, transparent 27px, color-mix(in srgb, var(--line) 55%, transparent) 28px);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, pre, .mono, .chip, .kv { font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace; }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  header.hero {
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 4px 9px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-size: clamp(28px, 5vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  nav.toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 32px 0 8px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  nav.toc a {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 11px;
+    white-space: nowrap;
+  }
+  nav.toc a:hover { color: var(--ink); border-color: var(--muted); }
+
+  section { margin-top: 64px; }
+  section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  section h2 .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  section > p.deck {
+    color: var(--muted);
+    margin: 0 0 22px;
+    max-width: 62ch;
+  }
+  p { margin: 0 0 16px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip.ns   { color: var(--muted); background: color-mix(in srgb, var(--muted) 14%, transparent); }
+  .chip.wl   { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .chip.svc  { color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 15%, transparent); }
+  .chip.cfg  { color: var(--accent-3); background: color-mix(in srgb, var(--accent-3) 15%, transparent); }
+
+  figure {
+    margin: 22px 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 18px 14px;
+    overflow-x: auto;
+  }
+  figure svg { display: block; width: 100%; height: auto; min-width: 560px; }
+  figcaption {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  .callout {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px dashed var(--line);
+    border-bottom: 1px dashed var(--line);
+    padding: 12px 2px;
+    margin: 22px 0;
+    line-height: 1.75;
+  }
+  .callout .tag { color: var(--accent); }
+
+  .codeblock {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.65;
+    margin: 18px 0 0;
+  }
+  .codeblock .filename {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--code-muted);
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .codeblock pre { margin: 0; white-space: pre; }
+  .codeblock .mark { background: color-mix(in srgb, var(--accent) 28%, transparent); border-radius: 3px; padding: 0 2px; }
+  .codeblock .mark2 { background: color-mix(in srgb, var(--accent-2) 28%, transparent); border-radius: 3px; padding: 0 2px; }
+  .codeblock .mark3 { background: color-mix(in srgb, var(--accent-3) 28%, transparent); border-radius: 3px; padding: 0 2px; }
+
+  ol.notes {
+    list-style: none;
+    counter-reset: n;
+    margin: 14px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  ol.notes li {
+    counter-increment: n;
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  ol.notes li::before {
+    content: counter(n);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    flex: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+  }
+  ol.notes li b { font-weight: 600; }
+  ol.notes li .fref { color: var(--muted); }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  ::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+</style>
+
+<main>
+
+  <header class="hero">
+    <span class="eyebrow">gitops-lab · Step 2 復習ノート</span>
+    <h1>sample-app 解剖図</h1>
+    <p class="lede">
+      <code class="mono">kubectl apply</code> 一発の裏側で、Namespace・Deployment・ReplicaSet・Pod・Service・ConfigMap が
+      それぞれ何をしていたのかを図で分解する。素材は実際にこのラボで動かした4つのマニフェストそのもの。
+    </p>
+  </header>
+
+  <nav class="toc" aria-label="目次">
+    <a href="#cluster">⓪ クラスタの構造</a>
+    <a href="#ns">① Namespace</a>
+    <a href="#workload">② Deployment→ReplicaSet→Pod</a>
+    <a href="#selector">③ ラベルセレクタ</a>
+    <a href="#configmap">④ ConfigMapのマウント</a>
+    <a href="#path">⑤ リクエストの通り道</a>
+    <a href="#files">⑥ ファイル解説</a>
+    <a href="#all">⑦ 全体像</a>
+  </nav>
+
+  <!-- ===================== 0. Cluster structure ===================== -->
+  <section id="cluster">
+    <h2><span class="num">00</span> クラスタの構造(control-plane と worker)</h2>
+    <p class="deck">Step1で作った3ノードのkindクラスタが、内部でどう役割分担しているか。</p>
+
+    <p>
+      Kubernetesクラスタは「頭脳」にあたる<b>control-plane</b>と、「実行部隊」にあたる<b>worker</b>ノードに分かれている。
+      すべての通信は<code class="mono">kube-apiserver</code>という単一の窓口を経由し、末端のPodを直接触りに行くことはない。
+    </p>
+
+    <figure role="img" aria-label="kubectlがkube-apiserverに要求を送り、apiserverがetcdに状態を保存し、schedulerとcontroller-managerがapiserver経由でクラスタを制御し、2つのworkerノード上のkubeletがapiserverと通信してPodを実行する図">
+      <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrCP" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <rect x="95" y="8" width="190" height="34" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="190" y="30" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">kubectl(ユーザー)</text>
+        <line x1="190" y1="42" x2="190" y2="86" stroke="currentColor" stroke-opacity="0.6" marker-end="url(#arrCP)"/>
+
+        <rect x="20" y="60" width="300" height="300" rx="10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="36" y="82" font-size="12" font-weight="600" fill="var(--accent)">control-plane</text>
+        <text x="36" y="345" font-size="9.5" fill="currentColor" opacity="0.5">Podは通常ここには配置されない(Taint)</text>
+
+        <rect x="45" y="90" width="250" height="55" rx="6" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-width="1.3"/>
+        <text x="170" y="112" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">kube-apiserver</text>
+        <text x="170" y="128" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">全通信の唯一の窓口</text>
+
+        <rect x="45" y="163" width="115" height="52" rx="6" fill="var(--accent-3)" fill-opacity="0.15" stroke="var(--accent-3)" stroke-width="1.3"/>
+        <text x="102" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">etcd</text>
+        <text x="102" y="200" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">状態の保存先</text>
+
+        <rect x="175" y="163" width="120" height="52" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="235" y="185" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">kube-scheduler</text>
+        <text x="235" y="200" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">配置先を決定</text>
+
+        <rect x="45" y="230" width="250" height="52" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="170" y="252" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">kube-controller-manager</text>
+        <text x="170" y="267" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">ReplicaSet等の制御ループを実行</text>
+
+        <line x1="160" y1="189" x2="167" y2="147" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#arrCP)"/>
+        <line x1="235" y1="163" x2="200" y2="147" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#arrCP)"/>
+        <line x1="170" y1="230" x2="170" y2="147" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#arrCP)"/>
+
+        <g font-size="11" text-anchor="middle">
+          <rect x="340" y="60" width="190" height="300" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+          <text x="435" y="82" font-size="12" font-weight="600" fill="currentColor" opacity="0.75">worker node</text>
+          <text x="435" y="97" font-size="9.5" fill="currentColor" opacity="0.5">gitops-lab-worker</text>
+
+          <rect x="355" y="108" width="160" height="42" rx="5" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="435" y="133" font-weight="600" fill="currentColor">kubelet</text>
+
+          <rect x="355" y="158" width="160" height="42" rx="5" fill="var(--accent-2)" fill-opacity="0.15" stroke="var(--accent-2)" stroke-width="1.2"/>
+          <text x="435" y="183" font-weight="600" fill="currentColor">kube-proxy</text>
+
+          <rect x="355" y="208" width="160" height="38" rx="5" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="435" y="231" font-weight="600" fill="currentColor" font-size="10.5">containerd</text>
+
+          <rect x="355" y="256" width="72" height="42" rx="5" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-opacity="0.6"/>
+          <text x="391" y="281" fill="currentColor" font-size="10">Pod</text>
+          <rect x="443" y="256" width="72" height="42" rx="5" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-opacity="0.6"/>
+          <text x="479" y="281" fill="currentColor" font-size="10">Pod</text>
+        </g>
+
+        <g font-size="11" text-anchor="middle">
+          <rect x="550" y="60" width="190" height="300" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+          <text x="645" y="82" font-size="12" font-weight="600" fill="currentColor" opacity="0.75">worker node</text>
+          <text x="645" y="97" font-size="9.5" fill="currentColor" opacity="0.5">gitops-lab-worker2</text>
+
+          <rect x="565" y="108" width="160" height="42" rx="5" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="645" y="133" font-weight="600" fill="currentColor">kubelet</text>
+
+          <rect x="565" y="158" width="160" height="42" rx="5" fill="var(--accent-2)" fill-opacity="0.15" stroke="var(--accent-2)" stroke-width="1.2"/>
+          <text x="645" y="183" font-weight="600" fill="currentColor">kube-proxy</text>
+
+          <rect x="565" y="208" width="160" height="38" rx="5" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="645" y="231" font-weight="600" fill="currentColor" font-size="10.5">containerd</text>
+
+          <rect x="565" y="256" width="72" height="42" rx="5" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-opacity="0.6"/>
+          <text x="601" y="281" fill="currentColor" font-size="10">Pod</text>
+          <rect x="653" y="256" width="72" height="42" rx="5" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-opacity="0.6"/>
+          <text x="689" y="281" fill="currentColor" font-size="10">Pod</text>
+        </g>
+
+        <line x1="320" y1="117" x2="350" y2="117" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrCP)"/>
+        <text x="335" y="106" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.55">report</text>
+
+        <path d="M 295 100 C 470 -10, 560 -10, 640 106" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="4 3" marker-end="url(#arrCP)"/>
+        <text x="465" y="26" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.55">kubelet ⇄ apiserver(全workerが同じ経路)</text>
+      </svg>
+      <figcaption>
+        3ノードの内訳: <code class="mono">gitops-lab-control-plane</code>が頭脳役、<code class="mono">gitops-lab-worker</code> / <code class="mono">gitops-lab-worker2</code>が実行部隊役。
+        kubeletはPodの実行状況をapiserverに報告し、kube-proxyはServiceの情報をapiserverから受け取ってiptablesルールを組む(図⑤で見た経路の裏側)。
+        schedulerとcontroller-managerはPodやNodeを直接触らず、必ずapiserverを介して指示を出す — この「全部apiserver経由」という一点集中構造がKubernetesの基本設計。
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== 1. Namespace ===================== -->
+  <section id="ns">
+    <h2><span class="num">01</span> Namespaceという区画</h2>
+    <p class="deck">物理的な隔離ではなく、同じNode群・同じネットワークを共有したままの「論理的な仕切り」。</p>
+
+    <p>
+      kind クラスタを作った直後から <span class="chip ns">kube-system</span> や <span class="chip ns">default</span> など複数のNamespaceが存在していた。
+      そこに今回 <code class="mono">sample-app</code> という区画を追加し、以降の全リソースをそこに所属させている。
+    </p>
+
+    <figure role="img" aria-label="クラスタ内にNamespaceという論理的な区画があり、sample-app Namespace内にDeployment・Service・ConfigMapが所属している図">
+      <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="700" height="300" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5"/>
+        <text x="26" y="34" font-size="12" fill="currentColor" opacity="0.55">Cluster: gitops-lab</text>
+
+        <g font-size="11.5" fill="currentColor" opacity="0.6">
+          <rect x="30" y="54" width="150" height="56" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+          <text x="105" y="86" text-anchor="middle">kube-system</text>
+          <rect x="200" y="54" width="150" height="56" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+          <text x="275" y="86" text-anchor="middle">default</text>
+          <rect x="370" y="54" width="150" height="56" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+          <text x="445" y="86" text-anchor="middle">kube-node-lease</text>
+          <rect x="540" y="54" width="150" height="56" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+          <text x="615" y="79" text-anchor="middle">local-path-</text>
+          <text x="615" y="93" text-anchor="middle">storage</text>
+        </g>
+
+        <rect x="30" y="150" width="660" height="145" rx="8" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="46" y="174" font-size="13" font-weight="600" fill="var(--accent)">Namespace: sample-app</text>
+
+        <rect x="55" y="190" width="185" height="70" rx="6" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-opacity="0.6"/>
+        <text x="147" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Deployment</text>
+        <text x="147" y="234" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.6">sample-app</text>
+
+        <rect x="268" y="190" width="185" height="70" rx="6" fill="var(--accent-2)" fill-opacity="0.12" stroke="var(--accent-2)" stroke-opacity="0.6"/>
+        <text x="360" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Service</text>
+        <text x="360" y="234" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.6">sample-app</text>
+
+        <rect x="481" y="190" width="185" height="70" rx="6" fill="var(--accent-3)" fill-opacity="0.12" stroke="var(--accent-3)" stroke-opacity="0.6"/>
+        <text x="573" y="212" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">ConfigMap</text>
+        <text x="573" y="228" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.6">sample-app-html</text>
+      </svg>
+      <figcaption>灰色破線の4つは元からある「システム用」Namespace。sample-app Namespace(オレンジ枠)は今回のマニフェストが作ったもので、中の3リソースが所属している。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== 2. Workload chain ===================== -->
+  <section id="workload">
+    <h2><span class="num">02</span> Deployment → ReplicaSet → Pod</h2>
+    <p class="deck">「3つ保て」という宣言から、実際のPodが生成・監視され続けるまでの制御ループ。</p>
+
+    <p>
+      <span class="chip wl">Deployment</span> は自分でPodを直接作らない。「<code class="mono">replicas: 3</code> を維持しろ」という指示を
+      <span class="chip wl">ReplicaSet</span> に渡し、実際にPodの数を数えて過不足を調整するのはReplicaSetの仕事になっている。
+    </p>
+
+    <figure role="img" aria-label="DeploymentがReplicaSetを作り、ReplicaSetが3つのPodを生成・監視し、Podが1つ消えると自動で補充される図">
+      <svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <rect x="270" y="20" width="180" height="58" rx="6" fill="var(--accent)" fill-opacity="0.14" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="360" y="45" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Deployment</text>
+        <text x="360" y="61" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.65">replicas: 3 を宣言</text>
+
+        <line x1="360" y1="78" x2="360" y2="116" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrB)"/>
+        <text x="372" y="102" font-size="10.5" fill="currentColor" opacity="0.6">creates / owns</text>
+
+        <rect x="245" y="118" width="230" height="58" rx="6" fill="var(--accent)" fill-opacity="0.14" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="360" y="143" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">ReplicaSet</text>
+        <text x="360" y="159" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.65">sample-app-7d4bb6d7bd</text>
+
+        <line x1="360" y1="176" x2="135" y2="238" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrB)"/>
+        <line x1="360" y1="176" x2="360" y2="238" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrB)"/>
+        <line x1="360" y1="176" x2="585" y2="238" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrB)"/>
+        <text x="360" y="200" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.6">3replicaを維持</text>
+
+        <g>
+          <rect x="60" y="240" width="150" height="66" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+          <text x="135" y="266" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Pod</text>
+          <text x="135" y="281" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">app=sample-app</text>
+        </g>
+        <g>
+          <rect x="285" y="240" width="150" height="66" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+          <text x="360" y="266" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Pod</text>
+          <text x="360" y="281" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">app=sample-app</text>
+        </g>
+        <g>
+          <rect x="510" y="240" width="150" height="66" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+          <text x="585" y="266" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Pod</text>
+          <text x="585" y="281" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">app=sample-app</text>
+        </g>
+
+        <path d="M 210 273 C 470 340, 500 220, 475 176" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-width="1.3" stroke-dasharray="4 4" marker-end="url(#arrB)"/>
+        <text x="420" y="345" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.65">Podを1つ削除しても、ReplicaSetが即座に補充する(self-healing)</text>
+      </svg>
+      <figcaption>実際に <code class="mono">kubectl delete pod</code> で1つ消してみたところ、数秒でPod数が3に戻った。これはReplicaSetが「望ましい数=3」と「実際の数」を常に比較し続ける制御ループだから起きる。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== 3. Label selector ===================== -->
+  <section id="selector">
+    <h2><span class="num">03</span> ラベルセレクタによる疎結合</h2>
+    <p class="deck">DeploymentはPodを「作る」、ServiceはPodを「選ぶ」。この2つは別の仕組み。</p>
+
+    <p>
+      Serviceは「Deploymentが作ったPod」を見ているわけではない。<code class="mono">selector: app: sample-app</code> というラベル条件に一致する
+      Podであれば、誰が作ったPodでも自動的にトラフィックの転送先に含める。
+    </p>
+
+    <figure role="img" aria-label="Deploymentは点線矢印でPodをテンプレートから生成し、Serviceは実線矢印でラベル一致によってPodを選択している図。どちらも同じ3つのPodに向かっている" >
+      <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrC1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="currentColor" opacity="0.55"/>
+          </marker>
+          <marker id="arrC2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="var(--accent-2)"/>
+          </marker>
+        </defs>
+
+        <rect x="55" y="20" width="260" height="56" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.4" stroke-dasharray="4 3"/>
+        <text x="185" y="43" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor" opacity="0.75">Deployment sample-app</text>
+        <text x="185" y="59" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.55">Podを template から生成</text>
+
+        <rect x="405" y="20" width="260" height="56" rx="6" fill="var(--accent-2)" fill-opacity="0.12" stroke="var(--accent-2)" stroke-width="1.5"/>
+        <text x="535" y="43" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Service sample-app</text>
+        <text x="535" y="59" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.65">selector: app=sample-app</text>
+
+        <line x1="150" y1="76" x2="135" y2="228" stroke="currentColor" stroke-opacity="0.4" stroke-dasharray="4 3" marker-end="url(#arrC1)"/>
+        <line x1="185" y1="76" x2="360" y2="228" stroke="currentColor" stroke-opacity="0.4" stroke-dasharray="4 3" marker-end="url(#arrC1)"/>
+        <line x1="230" y1="76" x2="583" y2="228" stroke="currentColor" stroke-opacity="0.4" stroke-dasharray="4 3" marker-end="url(#arrC1)"/>
+        <text x="130" y="150" font-size="10" fill="currentColor" opacity="0.55">生成 (create)</text>
+
+        <line x1="470" y1="76" x2="138" y2="228" stroke="var(--accent-2)" stroke-opacity="0.85" marker-end="url(#arrC2)"/>
+        <line x1="535" y1="76" x2="363" y2="228" stroke="var(--accent-2)" stroke-opacity="0.85" marker-end="url(#arrC2)"/>
+        <line x1="590" y1="76" x2="580" y2="228" stroke="var(--accent-2)" stroke-opacity="0.85" marker-end="url(#arrC2)"/>
+        <text x="500" y="150" font-size="10" fill="var(--accent-2)">選択 (label match)</text>
+
+        <rect x="60" y="230" width="150" height="66" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="135" y="258" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">Pod</text>
+        <text x="135" y="273" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">app=sample-app</text>
+
+        <rect x="285" y="230" width="150" height="66" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="360" y="258" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">Pod</text>
+        <text x="360" y="273" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">app=sample-app</text>
+
+        <rect x="508" y="230" width="150" height="66" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="583" y="258" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">Pod</text>
+        <text x="583" y="273" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">app=sample-app</text>
+      </svg>
+      <figcaption>もし手動で <code class="mono">app: sample-app</code> ラベルの付いたPodを1つ作ったら、Deploymentとは無関係でもServiceはトラフィックを流し始める。Serviceは名前ではなくラベルで相手を見つけている。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== 4. ConfigMap mount ===================== -->
+  <section id="configmap">
+    <h2><span class="num">04</span> ConfigMapのマウント</h2>
+    <p class="deck">設定(HTMLファイル)をコンテナイメージの外に置き、Volumeとして差し込む。</p>
+
+    <figure role="img" aria-label="ConfigMapのindex.htmlキーがVolumeとしてPod内のnginxコンテナの/usr/share/nginx/htmlにマウントされている図。kubeletによる同期には数十秒の遅延があることも示す">
+      <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrD" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <rect x="30" y="75" width="190" height="80" rx="6" fill="var(--accent-3)" fill-opacity="0.14" stroke="var(--accent-3)" stroke-width="1.5"/>
+        <text x="125" y="103" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">ConfigMap</text>
+        <text x="125" y="120" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.65">sample-app-html</text>
+        <text x="125" y="138" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.55">data.index.html</text>
+
+        <line x1="220" y1="115" x2="330" y2="115" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrD)"/>
+        <text x="275" y="103" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">volumeMount</text>
+
+        <rect x="335" y="35" width="335" height="160" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="351" y="55" font-size="11" fill="currentColor" opacity="0.55">Pod</text>
+        <rect x="360" y="70" width="285" height="90" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="502" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">container: nginx</text>
+        <text x="502" y="114" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.65">/usr/share/nginx/html/</text>
+        <text x="502" y="130" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.65">index.html</text>
+
+        <text x="502" y="182" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.5">kubeletが数十秒〜1分間隔で内容を同期(即時反映ではない)</text>
+      </svg>
+      <figcaption>ConfigMapの中身だけを書き換えても、Deploymentのtemplateは変わらないためPodは再作成されない。ファイル内容はkubeletが裏で同期するが、反映まで数十秒〜1分ほどラグが出る。</figcaption>
+    </figure>
+
+    <div class="callout"><span class="tag">// 実際に見えた挙動</span> — helm upgradeでConfigMapのメッセージを書き換えた直後にcurlすると古い文言のままだった。約60秒待って再度curlすると新しい文言に切り替わった。本番運用ではPodテンプレートにチェックサムannotationを仕込む等、明示的に再起動させる工夫がよく使われる。</div>
+  </section>
+
+  <!-- ===================== 5. Request path ===================== -->
+  <section id="path">
+    <h2><span class="num">05</span> リクエストの通り道</h2>
+    <p class="deck"><code class="mono">curl http://localhost:30080/</code> が実際にどの5段階を通ってPodまで届いたか。</p>
+
+    <figure role="img" aria-label="ブラウザからlocalhost:30080、kindコンテナのポートマッピング、ServiceのNodePort、kube-proxyのiptablesルール、最終的にPodへと至る5段階の経路図">
+      <svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrE" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g font-size="11" text-anchor="middle">
+          <rect x="10" y="55" width="136" height="70" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="78" y="83" font-weight="600" fill="currentColor">ブラウザ</text>
+          <text x="78" y="99" fill="currentColor" opacity="0.6" font-size="10">localhost:30080</text>
+
+          <rect x="166" y="55" width="136" height="70" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="234" y="78" font-weight="600" fill="currentColor" font-size="10.5">kind control-plane</text>
+          <text x="234" y="93" fill="currentColor" opacity="0.6" font-size="10">コンテナ :30080</text>
+          <text x="234" y="107" fill="currentColor" opacity="0.5" font-size="9">(extraPortMappings)</text>
+
+          <rect x="322" y="55" width="136" height="70" rx="6" fill="var(--accent-2)" fill-opacity="0.14" stroke="var(--accent-2)" stroke-width="1.5"/>
+          <text x="390" y="80" font-weight="600" fill="currentColor" font-size="11">Service</text>
+          <text x="390" y="95" fill="currentColor" opacity="0.65" font-size="9.5">NodePort 30080→80</text>
+
+          <rect x="478" y="55" width="136" height="70" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+          <text x="546" y="80" font-weight="600" fill="currentColor" font-size="11">kube-proxy</text>
+          <text x="546" y="96" fill="currentColor" opacity="0.6" font-size="9.5">iptables ルール</text>
+
+          <rect x="634" y="55" width="126" height="70" rx="6" fill="var(--accent)" fill-opacity="0.14" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="697" y="80" font-weight="600" fill="currentColor" font-size="11">Pod</text>
+          <text x="697" y="96" fill="currentColor" opacity="0.65" font-size="9.5">nginx (3つの中の1つ)</text>
+        </g>
+
+        <g stroke="currentColor" stroke-opacity="0.55">
+          <line x1="146" y1="90" x2="162" y2="90" marker-end="url(#arrE)"/>
+          <line x1="302" y1="90" x2="318" y2="90" marker-end="url(#arrE)"/>
+          <line x1="458" y1="90" x2="474" y2="90" marker-end="url(#arrE)"/>
+          <line x1="614" y1="90" x2="630" y2="90" marker-end="url(#arrE)"/>
+        </g>
+        <g font-size="9.5" fill="currentColor" opacity="0.55" text-anchor="middle">
+          <text x="154" y="44">転送</text>
+          <text x="310" y="44">NodePort受信</text>
+          <text x="466" y="44">selectorで解決</text>
+          <text x="622" y="44">ロードバランス</text>
+        </g>
+      </svg>
+      <figcaption>Docker Desktopがホストの30080番をkindのcontrol-planeコンテナにつなぎ、そこから先はk8s標準のService→kube-proxy→Podという経路。3つのPodのどれが応答するかはリクエストごとにほぼランダムに決まる。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== 6. Files ===================== -->
+  <section id="files">
+    <h2><span class="num">06</span> ファイル解説</h2>
+    <p class="deck">上の図で説明した仕組みが、実際のYAMLのどの行に対応しているか。</p>
+
+    <div class="codeblock">
+      <span class="filename">apps/sample-app/namespace.yaml</span>
+      <pre><code>apiVersion: v1
+<span class="mark">kind: Namespace</span>
+metadata:
+  <span class="mark">name: sample-app</span></code></pre>
+    </div>
+    <ol class="notes">
+      <li><b>kind: Namespace</b> <span class="fref">— クラスタ内に論理区画を作る(①のオレンジ枠)</span></li>
+      <li><b>name: sample-app</b> <span class="fref">— 以降の全リソースがこの名前をnamespace欄に指定して所属する</span></li>
+    </ol>
+
+    <div class="codeblock">
+      <span class="filename">apps/sample-app/configmap.yaml</span>
+      <pre><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-app-html
+  <span class="mark3">namespace: sample-app</span>
+<span class="mark3">data:
+  index.html: |</span>
+    &lt;!DOCTYPE html&gt;
+    &lt;html&gt;...&lt;/html&gt;</code></pre>
+    </div>
+    <ol class="notes">
+      <li><b>namespace: sample-app</b> <span class="fref">— ①で作った区画への所属を明示</span></li>
+      <li><b>data.index.html</b> <span class="fref">— キー名がそのままファイル名になり、値がファイルの中身になる(④でPodにマウントされるもの)</span></li>
+      <li><b>| (リテラルブロックスカラー)</b> <span class="fref">— 改行を保ったまま複数行の文字列を書けるYAML記法</span></li>
+    </ol>
+
+    <div class="codeblock">
+      <span class="filename">apps/sample-app/deployment.yaml</span>
+      <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+  namespace: sample-app
+spec:
+  <span class="mark">replicas: 3</span>
+  <span class="mark">selector:
+    matchLabels:
+      app: sample-app</span>
+  template:
+    metadata:
+      <span class="mark">labels:
+        app: sample-app</span>
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          <span class="mark3">volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html</span>
+      <span class="mark3">volumes:
+        - name: html
+          configMap:
+            name: sample-app-html</span></code></pre>
+    </div>
+    <ol class="notes">
+      <li><b>spec.replicas: 3</b> <span class="fref">— 「望ましいPod数」の宣言(②)</span></li>
+      <li><b>spec.selector.matchLabels</b> <span class="fref">— ReplicaSetが「自分の管理対象」とみなすPodの条件</span></li>
+      <li><b>template.metadata.labels</b> <span class="fref">— 実際に生成されるPodに貼られるラベル。selectorと一致しないとDeploymentがエラーになる(③の土台)</span></li>
+      <li><b>volumeMounts / volumes</b> <span class="fref">— ConfigMapをファイルとしてコンテナに配線する部分(④)</span></li>
+    </ol>
+
+    <div class="codeblock">
+      <span class="filename">apps/sample-app/service.yaml</span>
+      <pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app
+  namespace: sample-app
+spec:
+  <span class="mark2">type: NodePort</span>
+  <span class="mark2">selector:
+    app: sample-app</span>
+  ports:
+    - port: 80
+      targetPort: 80
+      <span class="mark2">nodePort: 30080</span></code></pre>
+    </div>
+    <ol class="notes">
+      <li><b>type: NodePort</b> <span class="fref">— 全ノードの指定ポートで外部公開するService種別</span></li>
+      <li><b>spec.selector</b> <span class="fref">— Deployment名やPod名は一切見ず、ラベルだけでPodを動的に選ぶ(③)</span></li>
+      <li><b>nodePort: 30080</b> <span class="fref">— kindの<code class="mono">extraPortMappings</code>で用意したホスト側30080番と合わせた数字(⑤)</span></li>
+    </ol>
+  </section>
+
+  <!-- ===================== 7. Everything in one diagram ===================== -->
+  <section id="all">
+    <h2><span class="num">07</span> 全部まとめた1枚の図</h2>
+    <p class="deck">⓪〜⑥で個別に見た要素を、実際のクラスタの配置そのままに1枚へ統合する。</p>
+
+    <p>
+      線が多いので色で読み分けてください。<span class="chip wl">オレンジ = 生成/管理</span>、<span class="chip svc">青緑 = ラベル選択</span>、<span class="chip cfg">藍 = 設定マウント</span>。
+      太い実線1本だけは「今まさに起きている1回のリクエスト」を表しています。
+    </p>
+
+    <figure role="img" aria-label="kubectlとブラウザがcontrol-planeに要求を送り、control-planeがDeployment・ReplicaSet・Service・ConfigMapというNamespace配下のオブジェクトを介して、worker/worker2という2つの物理ノードに配置された3つのPodを生成・選択・設定する様子を1枚に統合した図。太線は実際のリクエスト経路を示す">
+      <svg viewBox="0 0 1040 740" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrAll" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <polygon points="0,0 8,4 0,8" fill="currentColor"/>
+          </marker>
+          <marker id="arrAllBold" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <polygon points="0,0 9,4.5 0,9" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- actors -->
+        <rect x="20" y="16" width="170" height="40" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="105" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">kubectl</text>
+        <text x="105" y="47" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.6">apply / delete / scale</text>
+
+        <rect x="850" y="16" width="170" height="40" rx="6" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="935" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">ブラウザ</text>
+        <text x="935" y="47" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.6">localhost:30080</text>
+
+        <!-- control-plane -->
+        <rect x="330" y="80" width="380" height="125" rx="10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <text x="346" y="98" font-size="12" font-weight="600" fill="var(--accent)">control-plane</text>
+
+        <rect x="350" y="104" width="150" height="34" rx="5" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-opacity="0.7"/>
+        <text x="425" y="125" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">kube-apiserver</text>
+
+        <rect x="510" y="104" width="80" height="34" rx="5" fill="var(--accent-3)" fill-opacity="0.15" stroke="var(--accent-3)" stroke-opacity="0.7"/>
+        <text x="550" y="125" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">etcd</text>
+
+        <rect x="350" y="146" width="150" height="34" rx="5" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="425" y="167" text-anchor="middle" font-size="9" font-weight="600" fill="currentColor">scheduler / ctrl-mgr</text>
+
+        <rect x="510" y="146" width="180" height="34" rx="5" fill="var(--accent-2)" fill-opacity="0.15" stroke="var(--accent-2)" stroke-opacity="0.7"/>
+        <text x="600" y="167" text-anchor="middle" font-size="9" font-weight="600" fill="currentColor">kube-proxy (control-plane)</text>
+
+        <line x1="190" y1="40" x2="348" y2="112" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrAll)"/>
+        <text x="255" y="65" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.6">リソース定義を送る</text>
+
+        <line x1="850" y1="40" x2="692" y2="152" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrAll)"/>
+        <text x="790" y="80" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.6">NodePort 30080</text>
+
+        <line x1="500" y1="205" x2="358" y2="250" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#arrAll)"/>
+        <text x="470" y="228" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.6">reconcile</text>
+
+        <!-- namespace object row -->
+        <rect x="40" y="250" width="190" height="64" rx="6" fill="var(--accent)" fill-opacity="0.14" stroke="var(--accent)" stroke-width="1.3"/>
+        <text x="135" y="275" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Deployment</text>
+        <text x="135" y="291" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">sample-app</text>
+
+        <rect x="250" y="250" width="210" height="64" rx="6" fill="var(--accent)" fill-opacity="0.14" stroke="var(--accent)" stroke-width="1.3"/>
+        <text x="355" y="275" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">ReplicaSet</text>
+        <text x="355" y="291" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">sample-app-7d4bb6d7bd</text>
+
+        <rect x="480" y="250" width="190" height="64" rx="6" fill="var(--accent-2)" fill-opacity="0.14" stroke="var(--accent-2)" stroke-width="1.3"/>
+        <text x="575" y="275" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Service</text>
+        <text x="575" y="291" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">sample-app · NodePort</text>
+
+        <rect x="690" y="250" width="190" height="64" rx="6" fill="var(--accent-3)" fill-opacity="0.14" stroke="var(--accent-3)" stroke-width="1.3"/>
+        <text x="785" y="275" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">ConfigMap</text>
+        <text x="785" y="291" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.6">sample-app-html</text>
+
+        <line x1="230" y1="282" x2="248" y2="282" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrAll)"/>
+
+        <!-- fan-out: ReplicaSet / Service / ConfigMap -> 3 Pods -->
+        <g stroke-opacity="0.42">
+          <line x1="355" y1="314" x2="270" y2="465" stroke="var(--accent)" marker-end="url(#arrAll)"/>
+          <line x1="355" y1="314" x2="662" y2="465" stroke="var(--accent)" marker-end="url(#arrAll)"/>
+          <line x1="355" y1="314" x2="877" y2="465" stroke="var(--accent)" marker-end="url(#arrAll)"/>
+          <line x1="575" y1="314" x2="270" y2="465" stroke="var(--accent-2)" marker-end="url(#arrAll)"/>
+          <line x1="575" y1="314" x2="662" y2="465" stroke="var(--accent-2)" marker-end="url(#arrAll)"/>
+          <line x1="575" y1="314" x2="877" y2="465" stroke="var(--accent-2)" marker-end="url(#arrAll)"/>
+          <line x1="785" y1="314" x2="270" y2="465" stroke="var(--accent-3)" marker-end="url(#arrAll)"/>
+          <line x1="785" y1="314" x2="662" y2="465" stroke="var(--accent-3)" marker-end="url(#arrAll)"/>
+          <line x1="785" y1="314" x2="877" y2="465" stroke="var(--accent-3)" marker-end="url(#arrAll)"/>
+        </g>
+        <text x="355" y="330" text-anchor="middle" font-size="9" fill="var(--accent)">3replica維持</text>
+        <text x="575" y="330" text-anchor="middle" font-size="9" fill="var(--accent-2)">selector一致</text>
+        <text x="785" y="330" text-anchor="middle" font-size="9" fill="var(--accent-3)">volumeMount</text>
+
+        <!-- Node boxes -->
+        <rect x="40" y="400" width="460" height="220" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.5"/>
+        <text x="56" y="420" font-size="11.5" font-weight="600" fill="currentColor" opacity="0.8">worker node</text>
+        <text x="56" y="434" font-size="9" fill="currentColor" opacity="0.5">gitops-lab-worker</text>
+        <text x="56" y="450" font-size="9" fill="currentColor" opacity="0.45">kubelet ・ kube-proxy ・ containerd</text>
+
+        <rect x="70" y="465" width="400" height="130" rx="6" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="5 4"/>
+        <text x="270" y="488" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">Pod</text>
+        <text x="270" y="503" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.6">sample-app-7d4bb6d7bd-lrcc7</text>
+        <text x="270" y="518" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.55">app=sample-app</text>
+        <text x="270" y="536" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.5">container: nginx (10.244.1.7)</text>
+
+        <rect x="540" y="400" width="460" height="220" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.5"/>
+        <text x="556" y="420" font-size="11.5" font-weight="600" fill="currentColor" opacity="0.8">worker node</text>
+        <text x="556" y="434" font-size="9" fill="currentColor" opacity="0.5">gitops-lab-worker2</text>
+        <text x="556" y="450" font-size="9" fill="currentColor" opacity="0.45">kubelet ・ kube-proxy ・ containerd</text>
+
+        <rect x="560" y="465" width="205" height="130" rx="6" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="5 4"/>
+        <text x="662" y="488" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">Pod</text>
+        <text x="662" y="503" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.6">…-4sfbc</text>
+        <text x="662" y="518" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.55">app=sample-app</text>
+        <text x="662" y="536" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.5">10.244.2.8</text>
+
+        <rect x="775" y="465" width="205" height="130" rx="6" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="5 4"/>
+        <text x="877" y="488" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">Pod</text>
+        <text x="877" y="503" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.6">…-z465b</text>
+        <text x="877" y="518" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.55">app=sample-app</text>
+        <text x="877" y="536" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.5">10.244.2.7</text>
+
+        <!-- the one live request, drawn last so it sits on top -->
+        <path d="M 600 180 C 760 260, 850 350, 877 463" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#arrAllBold)"/>
+        <rect x="695" y="288" width="190" height="20" fill="var(--surface)" opacity="0.92"/>
+        <text x="790" y="302" text-anchor="middle" font-size="10" font-weight="600" fill="currentColor">実際の1リクエストの経路(例)</text>
+
+        <!-- legend -->
+        <circle cx="44" cy="659" r="4.5" fill="var(--accent)"/>
+        <text x="56" y="663" font-size="10" fill="currentColor" opacity="0.75">生成/管理: Deployment→ReplicaSet→Pod</text>
+        <circle cx="44" cy="679" r="4.5" fill="var(--accent-2)"/>
+        <text x="56" y="683" font-size="10" fill="currentColor" opacity="0.75">ラベル選択: Service→Pod</text>
+        <circle cx="44" cy="699" r="4.5" fill="var(--accent-3)"/>
+        <text x="56" y="703" font-size="10" fill="currentColor" opacity="0.75">設定マウント: ConfigMap→Pod</text>
+
+        <line x1="500" y1="659" x2="528" y2="659" stroke="currentColor" stroke-width="2.5"/>
+        <text x="536" y="663" font-size="10" fill="currentColor" opacity="0.75">実際の1リクエストの経路(例)</text>
+        <rect x="500" y="672" width="28" height="14" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <text x="536" y="683" font-size="10" fill="currentColor" opacity="0.75">Namespace: sample-appに属する(Nodeをまたいで配置される)</text>
+      </svg>
+      <figcaption>
+        control-plane内部の矢印(apiserver⇄etcd等)は⓪と同じなので省略。ここで新しく見えるのは、
+        <b>Namespace配下の4つのオブジェクト(オレンジ/青緑/藍)がNodeという物理境界を無視して3つのPodに届いている</b>ことと、
+        <b>ブラウザからのリクエストが、Podを持たないcontrol-planeのkube-proxyから入り、Node間ネットワークを越えてworker2上のPodまで太線でつながっている</b>ことの2点。
+        「論理的な結びつき(点線Pod・色付き矢印)」と「物理的な配置(Node実線の箱)」が一致していない、というのがこの1枚の一番の主張。
+      </figcaption>
+    </figure>
+  </section>
+
+  <footer>
+    ロードマップ上はStep2完了、次はStep3(Helm化)。このページはStep2の復習用ノートなので、ここでは何も実行しない。
+  </footer>
+
+</main>

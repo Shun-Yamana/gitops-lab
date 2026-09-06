@@ -1,0 +1,12 @@
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.27-alpine"
+
+message: "This page is served by an nginx Pod deployed with a Helm chart."
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
